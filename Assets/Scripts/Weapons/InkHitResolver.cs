@@ -14,6 +14,7 @@ namespace SplatoonInkPrototype.Weapons
             RaycastHit raycastHit,
             InkTeam team,
             float radius,
+            Vector3 incomingDirection,
             out InkableSurface inkableSurface,
             out InkSurfaceHit surfaceHit)
         {
@@ -29,6 +30,8 @@ namespace SplatoonInkPrototype.Weapons
             {
                 WorldPoint = raycastHit.point,
                 Normal = raycastHit.normal,
+                IncomingDirection = incomingDirection,
+                SurfaceDirection = inkableSurface.GetSurfaceDirection(incomingDirection),
                 UV = ResolveSurfaceUv(raycastHit, inkableSurface),
                 Radius = radius,
                 Team = team,
@@ -40,12 +43,6 @@ namespace SplatoonInkPrototype.Weapons
 
         private static Vector2 ResolveSurfaceUv(RaycastHit raycastHit, InkableSurface inkableSurface)
         {
-            var uv = raycastHit.textureCoord;
-            if (uv != Vector2.zero)
-            {
-                return uv;
-            }
-
             return inkableSurface.GetSurfaceUv(raycastHit.point);
         }
     }

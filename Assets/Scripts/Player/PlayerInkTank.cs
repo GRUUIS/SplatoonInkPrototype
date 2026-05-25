@@ -7,6 +7,8 @@ namespace SplatoonInkPrototype.Player
     /// </summary>
     public class PlayerInkTank : MonoBehaviour
     {
+        public event System.Action<float> InkNormalizedChanged;
+
         [Header("Capacity")]
         [SerializeField] private float maxInk = 1f;
         [SerializeField] private float startingInk = 1f;
@@ -31,7 +33,7 @@ namespace SplatoonInkPrototype.Player
         private void Update()
         {
             var refillMultiplier = inkState != null ? inkState.CurrentRefillMultiplier : 1f;
-            CurrentInk = Mathf.Clamp(CurrentInk + (baseRefillPerSecond * refillMultiplier * Time.deltaTime), 0f, maxInk);
+            SetInkAmount(CurrentInk + (baseRefillPerSecond * refillMultiplier * Time.deltaTime));
         }
 
         public bool TryConsume(float amount)
@@ -46,13 +48,24 @@ namespace SplatoonInkPrototype.Player
                 return false;
             }
 
-            CurrentInk -= amount;
+            SetInkAmount(CurrentInk - amount);
             return true;
         }
 
         public void Configure(PlayerInkState state)
         {
             inkState = state;
+        }
+
+        private void SetInkAmount(float amount)
+        {
+            var previousNormalized = InkNormalized;
+            CurrentInk = Mathf.Clamp(amount, 0f, maxInk);
+
+            if (!Mathf.Approximately(previousNormalized, InkNormalized))
+            {
+                InkNormalizedChanged?.Invoke(InkNormalized);
+            }
         }
     }
 }

@@ -9,6 +9,8 @@ namespace SplatoonInkPrototype.Ink.Gameplay
     {
         public Vector3 WorldPoint;
         public Vector3 Normal;
+        public Vector3 IncomingDirection;
+        public Vector2 SurfaceDirection;
         public Vector2 UV;
         public float Radius;
         public InkTeam Team;

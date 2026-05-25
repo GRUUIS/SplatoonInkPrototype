@@ -56,21 +56,51 @@ namespace SplatoonInkPrototype.Ink.Surfaces
         {
             var referenceTransform = targetRenderer != null ? targetRenderer.transform : transform;
             var localPoint = referenceTransform.InverseTransformPoint(worldPoint);
-            var scale = referenceTransform.lossyScale;
-            scale.x = Mathf.Max(0.01f, scale.x);
-            scale.y = Mathf.Max(0.01f, scale.y);
-            scale.z = Mathf.Max(0.01f, scale.z);
+            var localBounds = GetLocalSurfaceBounds(referenceTransform);
 
             if (treatAsWall)
             {
                 return new Vector2(
-                    Mathf.Clamp01(localPoint.x / scale.x + 0.5f),
-                    Mathf.Clamp01(localPoint.y / scale.y + 0.5f));
+                    NormalizeLocalAxis(localPoint.x, localBounds.min.x, localBounds.max.x),
+                    NormalizeLocalAxis(localPoint.y, localBounds.min.y, localBounds.max.y));
             }
 
             return new Vector2(
-                Mathf.Clamp01(localPoint.x / scale.x + 0.5f),
-                Mathf.Clamp01(localPoint.z / scale.z + 0.5f));
+                NormalizeLocalAxis(localPoint.x, localBounds.min.x, localBounds.max.x),
+                NormalizeLocalAxis(localPoint.z, localBounds.min.z, localBounds.max.z));
+        }
+
+        public Vector2 GetSurfaceDirection(Vector3 worldDirection)
+        {
+            var referenceTransform = targetRenderer != null ? targetRenderer.transform : transform;
+            var localDirection = referenceTransform.InverseTransformDirection(worldDirection);
+            var direction = treatAsWall
+                ? new Vector2(localDirection.x, localDirection.y)
+                : new Vector2(localDirection.x, localDirection.z);
+
+            if (direction.sqrMagnitude < 0.0001f)
+            {
+                return Vector2.right;
+            }
+
+            return direction.normalized;
+        }
+
+        private static Bounds GetLocalSurfaceBounds(Transform referenceTransform)
+        {
+            var meshFilter = referenceTransform.GetComponent<MeshFilter>();
+            if (meshFilter != null && meshFilter.sharedMesh != null)
+            {
+                return meshFilter.sharedMesh.bounds;
+            }
+
+            return new Bounds(Vector3.zero, Vector3.one);
+        }
+
+        private static float NormalizeLocalAxis(float value, float min, float max)
+        {
+            var range = Mathf.Max(0.0001f, max - min);
+            return Mathf.Clamp01((value - min) / range);
         }
     }
 }
